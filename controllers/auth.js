@@ -5,8 +5,9 @@ const secretKey = "noIdea";
 
 const login = async (req, res) => {
     const { username, password } = req.body;
+    let conn = null;
     try {
-        const conn = await db.connection();
+        conn = await db.connection();
         const [result] = await conn.query("SELECT * from users WHERE username = ? AND status = 'active'", username);
         const user = result[0];
 
@@ -33,6 +34,10 @@ const login = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: 'Internal server error' });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 };
 

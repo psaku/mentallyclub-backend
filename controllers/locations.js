@@ -18,6 +18,10 @@ const getLocationID = async (req, res) => {
             message: "get location data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
@@ -39,6 +43,10 @@ const getTambons = async (req, res) => {
             message: "get Tambon data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
@@ -60,6 +68,10 @@ const getDistricts = async (req, res) => {
             message: "get District data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
@@ -81,10 +93,14 @@ const getProvincesByRegion = async (req, res) => {
             message: "get Province data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
-const getProvinces = async (req, res) => {    
+const getProvinces = async (req, res) => {
     let conn = null;
     try {
         conn = await db.connection();
@@ -101,10 +117,14 @@ const getProvinces = async (req, res) => {
             message: "get Province data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
-const getRegions = async (req, res) => {    
+const getRegions = async (req, res) => {
     let conn = null;
     try {
         conn = await db.connection();
@@ -121,7 +141,11 @@ const getRegions = async (req, res) => {
             message: "get region data fail!",
             error,
         });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
     }
 }
 
-module.exports = { getLocationID, getTambons, getDistricts, getProvincesByRegion, getProvinces, getRegions  }
+module.exports = { getLocationID, getTambons, getDistricts, getProvincesByRegion, getProvinces, getRegions }

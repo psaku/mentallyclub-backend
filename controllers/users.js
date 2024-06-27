@@ -20,6 +20,10 @@ const getUser = async(req, res) => {
       message: "get users data fail!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
@@ -38,6 +42,10 @@ const getUsers = async(req, res) => {
       message: "get users data fail!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
@@ -85,6 +93,10 @@ const createUser = async (req, res) => {
       message: "insert user data fail!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
   res.status(201).send({ message: "User registered successfully" });
 }
@@ -107,6 +119,10 @@ const updateUserStatus = async (req, res) => {
       message: "Update Database error!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
@@ -129,6 +145,10 @@ const updatePassword = async (req, res) => {
       message: "Update Database error!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
@@ -156,6 +176,10 @@ const updateEmail = async (req, res) => {
       message: "Update Database error!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
@@ -178,6 +202,10 @@ const deleteUser = async(req, res) => {
       message: "get users data fail!",
       error,
     });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
   }
 }
 
