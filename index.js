@@ -10,9 +10,9 @@ const app = express();
 // using below statement for json body parser
 app.use(express.json());
 app.use(cors({
-  credentials: true,
-  origin: true
-}))
+  origin: true,
+  credentials: true
+}));
 app.use(cookieParser());
 app.use('/api/v1', apiRouter);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));

@@ -6,7 +6,7 @@ const locationController = require('../controllers/locations');
 
 const authChecker = (req, res, next) => {
   const token = req.cookies.token; // เปลี่ยนมาเช็คผ่าน cookie ที่ใส่ไปแทน
-  console.log('Token:', authController.secretKey);
+  console.log('Token:', token);
   if (token == null) return res.sendStatus(401); // if there isn't any token
   
   try {
@@ -19,17 +19,31 @@ const authChecker = (req, res, next) => {
   }
 }
 
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.sendStatus(403)
+  }
+  jwt.verify(token, authController.secretKey, (err, decoded)=> {
+    if (err) {
+      return res.status(401).json({error: 'Failed to authenticate token'})
+    }
+    req.user = decoded;
+    next();
+  });
+}
+
 const router = express.Router();
 
 router.post('/login', authController.login);
-router.get('/logout', authChecker, authController.logout);
-router.post('/users', authChecker, usersController.createUser);
-router.put('/users/status', authChecker, usersController.updateUserStatus);
-router.put('/users/email', authChecker, usersController.updateEmail);
-router.put('/users/password', authChecker, usersController.updatePassword);
-router.delete('/users/:name', authChecker, usersController.deleteUser);
-router.get('/users/:name', authChecker, usersController.getUser);
-router.get('/users', authChecker, usersController.getUsers);
+router.get('/logout', verifyToken, authController.logout);
+router.post('/users', verifyToken, usersController.createUser);
+router.put('/users/status', verifyToken, usersController.updateUserStatus);
+router.put('/users/email', verifyToken, usersController.updateEmail);
+router.put('/users/password', verifyToken, usersController.updatePassword);
+router.delete('/users/:name', verifyToken, usersController.deleteUser);
+router.get('/users/:name', verifyToken, usersController.getUser);
+router.get('/users', verifyToken, usersController.getUsers);
 router.get('/locations',locationController.getLocationID);
 router.get('/locations/tambons',locationController.getTambons);
 router.get('/locations/districts',locationController.getDistricts);
