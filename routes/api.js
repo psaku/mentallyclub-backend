@@ -38,6 +38,7 @@ const router = express.Router();
 router.post('/login', authController.login);
 router.get('/logout', verifyToken, authController.logout);
 router.post('/users', verifyToken, usersController.createUser);
+router.put('/users', verifyToken, usersController.updateUser);
 router.put('/users/status', verifyToken, usersController.updateUserStatus);
 router.put('/users/email', verifyToken, usersController.updateEmail);
 router.put('/users/password', verifyToken, usersController.updatePassword);

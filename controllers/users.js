@@ -52,6 +52,7 @@ const getUsers = async(req, res) => {
 // register new user
 const createUser = async (req, res) => {
   const { username, password, role, status, email } = req.body;
+  console.log(username);
   let conn = null;
   try {
     conn = await db.connection();
@@ -98,7 +99,46 @@ const createUser = async (req, res) => {
       await conn.close(); // Close the connection in the finally block
     }
   }
-  res.status(201).send({ message: "User registered successfully" });
+  res.status(200).send({ message: "ok" });
+}
+
+// update user
+const updateUser = async (req, res) => {
+  const { username, role, status, email } = req.body;
+  //console.log(username);
+  let conn = null;
+  try {
+    conn = await db.connection();
+    // check unique email?
+    const [emailrows] = await conn.query("SELECT * FROM users WHERE email = ? AND Username != ?", [email, username]);
+    if (emailrows.length) {
+      return res.status(400).send({ message: "Email is already registered" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Database error!",
+      error,
+    });
+  }
+
+  try {
+    const row = await conn.query("UPDATE users SET role = ?, status = ?, email = ? WHERE Username = ?", [role, status, email, username]);
+    if (!(row[0].affectedRows > 0)) {
+      return res.status(404).send({ message: 'ERR: update user fail!' });
+    }     
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({
+      message: "insert user data fail!",
+      error,
+    });
+  } finally {
+    if (conn) {
+      await conn.close(); // Close the connection in the finally block
+    }
+  }
+  return res.status(200).send({ message: "ok" });
 }
 
 // update user status
@@ -191,10 +231,10 @@ const deleteUser = async(req, res) => {
     conn = await db.connection();
     const row = await conn.query("DELETE FROM users WHERE Username = ?", username);
     if (row[0].affectedRows > 0) {
-      return res.status(200).send({ message: 'Delete user successfully!' });
+      return res.status(200).send({ message: 'ok' });
     } 
 
-    return res.status(404).send({ message: 'ERR: Delete user fail!' });
+    return res.status(404).send({ message: 'ERROR: Delete user fail!' });
 
   } catch (error) {
     console.error(error);
@@ -210,6 +250,6 @@ const deleteUser = async(req, res) => {
 }
 
 module.exports = {
-  createUser, getUsers, getUser, updateUserStatus, deleteUser, updateEmail, updatePassword
+  createUser, getUsers, getUser, updateUserStatus, updateUser, deleteUser, updateEmail, updatePassword
 };
 
