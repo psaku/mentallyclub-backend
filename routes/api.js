@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const usersController = require('../controllers/users');
 const authController = require('../controllers/auth');
 const locationController = require('../controllers/locations');
+const clubsController = require('../controllers/clubs');
 
 const authChecker = (req, res, next) => {
   const token = req.cookies.token; // เปลี่ยนมาเช็คผ่าน cookie ที่ใส่ไปแทน
@@ -49,7 +50,14 @@ router.get('/locations',locationController.getLocationID);
 router.get('/locations/tambons',locationController.getTambons);
 router.get('/locations/districts',locationController.getDistricts);
 router.get('/locations/provinces/:region',locationController.getProvincesByRegion);
+router.get('/locations/:postcode',locationController.getLocationByPostcode);
 router.get('/locations/provinces',locationController.getProvinces);
 router.get('/locations/regions',locationController.getRegions);
+// club api
+router.get('/clubs', verifyToken, clubsController.getClubs);
+router.get('/clubs/:id', verifyToken, clubsController.getClub);
+router.post('/clubs', verifyToken, clubsController.createClub);
+router.put('/clubs', verifyToken, clubsController.updateClub);
+router.delete('/clubs/:id', verifyToken, clubsController.deleteClub);
 
 module.exports = router;

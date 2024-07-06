@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const { swaggerSpecs, swaggerUI } = require('./swagger');
 const apiRouter = require('./routes/api');
 
+process.env.TZ = 'Asia/Bangkok';
+
 const app = express();
 
 // express version 4.16.0+ has built-in JSON parsing capabilities

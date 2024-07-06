@@ -148,4 +148,31 @@ const getRegions = async (req, res) => {
     }
 }
 
-module.exports = { getLocationID, getTambons, getDistricts, getProvincesByRegion, getProvinces, getRegions }
+const getLocationByPostcode = async (req, res) => {
+    const postcode = req.params.postcode;
+    //console.log('get location: ', postcode);
+    let conn = null;
+    try {
+        conn = await db.connection();
+        const [rows] = await conn.query("SELECT TambonThai, DistrictThai, ProvinceThai FROM ThailandLocations WHERE PostCode = ?", postcode);
+        if (rows.length) {
+           // console.log(rows);
+            return res.status(200).send({ message: rows });
+        }
+
+        return res.status(404).send({ message: 'Location not found by zipcode!' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "get location data fail!",
+            error,
+        });
+    } finally {
+        if (conn) {
+            await conn.close(); // Close the connection in the finally block
+        }
+    }
+}
+
+module.exports = { getLocationID, getTambons, getDistricts, getProvincesByRegion, getProvinces, getRegions, getLocationByPostcode }

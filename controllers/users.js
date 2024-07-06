@@ -47,12 +47,13 @@ const getUsers = async(req, res) => {
       await conn.close(); // Close the connection in the finally block
     }
   }
+  return res.status(200).send({ message: [] });
 }
 
 // register new user
 const createUser = async (req, res) => {
   const { username, password, role, status, email } = req.body;
-  console.log(username);
+  
   let conn = null;
   try {
     conn = await db.connection();
@@ -90,7 +91,7 @@ const createUser = async (req, res) => {
     const result = await conn.query("INSERT INTO users SET ?", userData);
   } catch (error) {
     console.error(error);
-    res.status(400).json({
+    res.status(500).json({
       message: "insert user data fail!",
       error,
     });
@@ -129,8 +130,8 @@ const updateUser = async (req, res) => {
     }     
   } catch (error) {
     console.error(error);
-    res.status(400).json({
-      message: "insert user data fail!",
+    res.status(500).json({
+      message: "update user data fail!",
       error,
     });
   } finally {
@@ -239,7 +240,7 @@ const deleteUser = async(req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "get users data fail!",
+      message: "Delete users data fail!",
       error,
     });
   } finally {
