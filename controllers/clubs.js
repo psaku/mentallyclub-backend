@@ -123,13 +123,13 @@ const createClub = async (req, res) => {
 
 // update club
 const updateClub = async (req, res) => {
-  const { clubid, clubname, locationid, address, clubfoundingdate, clubcommitteeid } = req.body;
-  //console.log(username);
+  const { clubid, clubname, clubfoundingdate, homeno, moo, tambon, district, province, phoneno, zipcode, clubcommitteeid } = req.body;
   let conn = null;
 
   try {
     conn = await db.connection();
-    const row = await conn.query("UPDATE clubs SET ClubName=?, LocationID=?, Address=?, ClubFoundingDate=?, ClubPresidentID=? WHERE ClubID = ?", [clubname, locationid, address, clubfoundingdate, clubcommitteeid, clubid]);
+    const row = await conn.query("UPDATE clubs SET ClubName=?, homeno=?, moo=?, tambon=?,district=?,province=?,phoneno=?,zipcode=?, ClubFoundingDate=?, ClubPresidentID=? WHERE ClubID = ?", 
+      [clubname, homeno, moo, tambon, district, province, phoneno,zipcode,clubfoundingdate, clubcommitteeid, clubid]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update club fail!' });
     }
