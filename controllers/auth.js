@@ -36,7 +36,11 @@ const login = async (req, res) => {
         res.status(500).send({ message: 'Internal server error' });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 };

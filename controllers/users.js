@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const db = require('../db/database');
 
 // get user by id
-const getUser = async(req, res) => {
+const getUser = async (req, res) => {
   const username = req.params.name;
   let conn = null;
   try {
@@ -10,7 +10,7 @@ const getUser = async(req, res) => {
     const [userrows] = await conn.query("SELECT * FROM users WHERE Username = ?", username);
     if (userrows.length) {
       return res.status(200).send({ message: userrows });
-    } 
+    }
 
     return res.status(404).send({ message: 'User not found!' });
 
@@ -22,13 +22,17 @@ const getUser = async(req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
 
 // get all users
-const getUsers = async(req, res) => { 
+const getUsers = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
@@ -36,6 +40,7 @@ const getUsers = async(req, res) => {
     if (userrows.length) {
       return res.status(200).send({ message: userrows });
     }
+    return res.status(200).send({ message: [] });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -44,16 +49,19 @@ const getUsers = async(req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
-  }
-  return res.status(200).send({ message: [] });
+  } 
 }
 
 // register new user
 const createUser = async (req, res) => {
   const { username, password, role, status, email } = req.body;
-  
+
   let conn = null;
   try {
     conn = await db.connection();
@@ -89,6 +97,7 @@ const createUser = async (req, res) => {
 
   try {
     const result = await conn.query("INSERT INTO users SET ?", userData);
+    res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -97,10 +106,13 @@ const createUser = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
-  }
-  res.status(200).send({ message: "ok" });
+  } 
 }
 
 // update user
@@ -127,7 +139,8 @@ const updateUser = async (req, res) => {
     const row = await conn.query("UPDATE users SET role = ?, status = ?, email = ? WHERE Username = ?", [role, status, email, username]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update user fail!' });
-    }     
+    }
+    return res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -136,10 +149,13 @@ const updateUser = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
-  }
-  return res.status(200).send({ message: "ok" });
+  }  
 }
 
 // update user status
@@ -152,7 +168,7 @@ const updateUserStatus = async (req, res) => {
     // console.log(row[0].affectedRows)
     if (row[0].affectedRows > 0) {
       return res.status(200).send({ message: "User status updated successfully" });
-    } 
+    }
     return res.status(404).send({ message: 'ERR: update user status fail!' });
   } catch (error) {
     console.error(error);
@@ -162,7 +178,11 @@ const updateUserStatus = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
@@ -178,7 +198,7 @@ const updatePassword = async (req, res) => {
     // console.log(row[0].affectedRows)
     if (row[0].affectedRows > 0) {
       return res.status(200).send({ message: "Change user password successfully" });
-    } 
+    }
     return res.status(404).send({ message: 'ERR: change password fail!' });
   } catch (error) {
     console.error(error);
@@ -188,7 +208,11 @@ const updatePassword = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
@@ -209,7 +233,7 @@ const updateEmail = async (req, res) => {
     // console.log(row[0].affectedRows)
     if (row[0].affectedRows > 0) {
       return res.status(200).send({ message: "Email updated successfully" });
-    } 
+    }
     return res.status(404).send({ message: 'ERR: update email fail!' });
   } catch (error) {
     console.error(error);
@@ -219,13 +243,17 @@ const updateEmail = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
 
 // delete user by name
-const deleteUser = async(req, res) => {
+const deleteUser = async (req, res) => {
   const username = req.params.name;
   let conn = null;
   try {
@@ -233,7 +261,7 @@ const deleteUser = async(req, res) => {
     const row = await conn.query("DELETE FROM users WHERE Username = ?", username);
     if (row[0].affectedRows > 0) {
       return res.status(200).send({ message: 'ok' });
-    } 
+    }
 
     return res.status(404).send({ message: 'ERROR: Delete user fail!' });
 
@@ -245,7 +273,11 @@ const deleteUser = async(req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }

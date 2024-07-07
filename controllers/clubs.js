@@ -21,7 +21,11 @@ const getClub = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
@@ -52,24 +56,28 @@ const getClubs = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }
 
-const adjustUTCDate = (utcdate) => {
-  if (utcdate.endsWith('Z')) {
-    // เป็น UTC
-    const localDate = new Date(utcdate).toLocaleString("en-US", { timeZone: "Asia/Bangkok" });
-    const formattedDate = new Date(localDate).toISOString().slice(0, 10);
-    //        console.log(formattedDate); // Output: "2024-07-06"
-  } else {
-    // ไม่ใช่ UTC
-    const formattedDate = new Date(utcdate).toISOString().slice(0, 10);
-    //        console.log(formattedDate); // Output: "2024-07-05"
-  }
-  return formattedDate;
-}
+// const adjustUTCDate = (utcdate) => {
+//   if (utcdate.endsWith('Z')) {
+//     // เป็น UTC
+//     const localDate = new Date(utcdate).toLocaleString("en-US", { timeZone: "Asia/Bangkok" });
+//     const formattedDate = new Date(localDate).toISOString().slice(0, 10);
+//     //        console.log(formattedDate); // Output: "2024-07-06"
+//   } else {
+//     // ไม่ใช่ UTC
+//     const formattedDate = new Date(utcdate).toISOString().slice(0, 10);
+//     //        console.log(formattedDate); // Output: "2024-07-05"
+//   }
+//   return formattedDate;
+// }
 
 // create new club
 const createClub = async (req, res) => {
@@ -103,7 +111,11 @@ const createClub = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 
@@ -121,6 +133,7 @@ const updateClub = async (req, res) => {
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update club fail!' });
     }
+    return res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -129,10 +142,13 @@ const updateClub = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
-  }
-  return res.status(200).send({ message: "ok" });
+  }  
 }
 
 // delete club by id
@@ -156,7 +172,11 @@ const deleteClub = async (req, res) => {
     });
   } finally {
     if (conn) {
-      await conn.close(); // Close the connection in the finally block
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
     }
   }
 }

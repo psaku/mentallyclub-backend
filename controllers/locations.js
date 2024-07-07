@@ -20,7 +20,11 @@ const getLocationID = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
@@ -45,7 +49,11 @@ const getTambons = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
@@ -70,7 +78,11 @@ const getDistricts = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
@@ -95,7 +107,11 @@ const getProvincesByRegion = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
@@ -119,10 +135,15 @@ const getProvinces = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
-        }
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
+        } 
     }
 }
+
 
 const getRegions = async (req, res) => {
     let conn = null;
@@ -143,7 +164,11 @@ const getRegions = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
@@ -156,7 +181,7 @@ const getLocationByPostcode = async (req, res) => {
         conn = await db.connection();
         const [rows] = await conn.query("SELECT TambonThai, DistrictThai, ProvinceThai FROM ThailandLocations WHERE PostCode = ?", postcode);
         if (rows.length) {
-           // console.log(rows);
+            // console.log(rows);
             return res.status(200).send({ message: rows });
         }
 
@@ -170,7 +195,11 @@ const getLocationByPostcode = async (req, res) => {
         });
     } finally {
         if (conn) {
-            await conn.close(); // Close the connection in the finally block
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
         }
     }
 }
