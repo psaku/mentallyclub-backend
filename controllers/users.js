@@ -36,11 +36,16 @@ const getUsers = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
-    const [userrows] = await conn.query("SELECT * FROM users");
-    if (userrows.length) {
-      return res.status(200).send({ message: userrows });
-    }
-    return res.status(200).send({ message: [] });
+    const [rows] = await conn.query("SELECT * FROM users");
+    const userrows = rows.map((row) => {
+      const lastAccessedFormatted = new Date(row.LastAccessed).toLocaleString("en-US", {
+        timeZone: "Asia/Bangkok",
+        dateStyle: "full",
+        timeStyle: "short",
+      });
+      return { ...row, LastAccessed: lastAccessedFormatted };
+    });
+    return res.status(200).send({ message: userrows });
   } catch (error) {
     console.error(error);
     res.status(500).json({
