@@ -30,6 +30,37 @@ const getClub = async (req, res) => {
   }
 }
 
+// get club by name
+const getClubByName = async (req, res) => {
+  const name = req.params.name;
+  let conn = null;
+  try {
+    conn = await db.connection();
+    const [rows] = await conn.query("SELECT * FROM clubs WHERE ClubName like ?", `%${name}%`);
+
+    if (rows.length) {
+      return res.status(200).send({ message: rows });
+    }
+
+    return res.status(404).send({ message: 'Club not found!' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "get club data fail!",
+      error,
+    });
+  } finally {
+    if (conn) {
+      try {
+        await conn.close(); // Close the connection in the finally block
+      } catch (closeError) {
+        console.error('Error closing connection:', closeError);
+      }
+    }
+  }
+}
+
 // get all clubs
 const getClubs = async (req, res) => {
   let conn = null;
@@ -182,6 +213,6 @@ const deleteClub = async (req, res) => {
 }
 
 module.exports = {
-  createClub, getClubs, getClub, updateClub, deleteClub
+  createClub, getClubs, getClub, updateClub, deleteClub, getClubByName
 };
 

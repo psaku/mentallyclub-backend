@@ -56,6 +56,7 @@ router.get('/locations/regions',locationController.getRegions);
 // club api
 router.get('/clubs', verifyToken, clubsController.getClubs);
 router.get('/clubs/:id', verifyToken, clubsController.getClub);
+router.get('/clubsbyname/:name', verifyToken, clubsController.getClubByName);
 router.post('/clubs', verifyToken, clubsController.createClub);
 router.put('/clubs', verifyToken, clubsController.updateClub);
 router.delete('/clubs/:id', verifyToken, clubsController.deleteClub);
