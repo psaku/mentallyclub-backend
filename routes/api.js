@@ -4,6 +4,7 @@ const usersController = require('../controllers/users');
 const authController = require('../controllers/auth');
 const locationController = require('../controllers/locations');
 const clubsController = require('../controllers/clubs');
+const committeeController = require('../controllers/committee');
 
 const authChecker = (req, res, next) => {
   const token = req.cookies.token; // เปลี่ยนมาเช็คผ่าน cookie ที่ใส่ไปแทน
@@ -60,5 +61,6 @@ router.get('/clubsbyname/:name', verifyToken, clubsController.getClubByName);
 router.post('/clubs', verifyToken, clubsController.createClub);
 router.put('/clubs', verifyToken, clubsController.updateClub);
 router.delete('/clubs/:id', verifyToken, clubsController.deleteClub);
-
+// committee api
+router.post('/committees', verifyToken, committeeController.createCommittee);
 module.exports = router;
