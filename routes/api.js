@@ -6,9 +6,8 @@ const locationController = require('../controllers/locations');
 const clubsController = require('../controllers/clubs');
 const committeeController = require('../controllers/committee');
 
-const authChecker = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const token = req.cookies.token; // เปลี่ยนมาเช็คผ่าน cookie ที่ใส่ไปแทน
-  console.log('Token:', token);
   if (token == null) return res.sendStatus(401); // if there isn't any token
   
   try {
@@ -21,19 +20,19 @@ const authChecker = (req, res, next) => {
   }
 }
 
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.sendStatus(403)
-  }
-  jwt.verify(token, authController.secretKey, (err, decoded)=> {
-    if (err) {
-      return res.status(401).json({error: 'Failed to authenticate token'})
-    }
-    req.user = decoded;
-    next();
-  });
-}
+// const verifyToken = (req, res, next) => {
+//   const token = req.headers.authorization?.split(' ')[1];
+//   if (!token) {
+//     return res.sendStatus(403)
+//   }
+//   jwt.verify(token, authController.secretKey, (err, decoded)=> {
+//     if (err) {
+//       return res.status(401).json({error: 'Failed to authenticate token'})
+//     }
+//     req.user = decoded;
+//     next();
+//   });
+// }
 
 const router = express.Router();
 

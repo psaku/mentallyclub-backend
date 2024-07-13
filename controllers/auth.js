@@ -23,12 +23,13 @@ const login = async (req, res) => {
         const upd = await conn.query("UPDATE users SET lastaccessed = NOW() WHERE username = ?", username);
 
         const token = jwt.sign({ username: user.Username, role: user.Role }, secretKey, { expiresIn: "1h" });
-        // res.cookie("token", token, {
-        //     maxAge: 300000,
-        //     secure: true,
-        //     httpOnly: true,
-        //     sameSite: "none",
-        // });
+
+        res.cookie("token", token, {
+            maxAge: 1000*60*60*24,   // expired after 24 hours
+            secure: false,  // not use with HTTPS only
+            httpOnly: true,
+            sameSite: "none",  // client and server origins are different
+        });
 
         res.status(200).send({ message: "Login successful", id: user.UserID, email: user.Email, role: user.Role, token: token });
     } catch (error) {
