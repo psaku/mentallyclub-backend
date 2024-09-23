@@ -15,7 +15,7 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(cookieParser());
+
 app.use('/api/v1', apiRouter);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 

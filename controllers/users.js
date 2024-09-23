@@ -45,6 +45,7 @@ const getUsers = async (req, res) => {
       });
       return { ...row, LastAccessed: lastAccessedFormatted };
     });
+    
     return res.status(200).send({ message: userrows });
   } catch (error) {
     console.error(error);
@@ -60,12 +61,12 @@ const getUsers = async (req, res) => {
         console.error('Error closing connection:', closeError);
       }
     }
-  } 
+  }
 }
 
 // register new user
 const createUser = async (req, res) => {
-  const { username, password, role, status, email } = req.body;
+  const { username, password, role, status, email, personalname } = req.body;
 
   let conn = null;
   try {
@@ -87,13 +88,19 @@ const createUser = async (req, res) => {
       error,
     });
   }
-  // Hash the password
-  const hashResult = await bcrypt.hash(password, 256);
-  // 256 = salt (การสุ่มค่าเพื่อเพิ่มความซับซ้อนในการเข้ารหัส)
+  // Hash the password, round of sult = 10-12
+  //const hashResult = await bcrypt.hash(password, 10);
+  // 10 = salt (การสุ่มค่าเพื่อเพิ่มความซับซ้อนในการเข้ารหัส)
 
+  const salt = await bcrypt.genSalt(10);
+  // แฮชรหัสผ่านด้วยซอลต์ที่สร้างขึ้น
+  const hashResult = await  bcrypt.hash(password, salt);
+  
+  console.log(salt, hashResult);
   // Store the user data
   const userData = {
     username: username,
+    personalname: personalname,
     role: role,
     status: status,
     email: email,
@@ -117,12 +124,12 @@ const createUser = async (req, res) => {
         console.error('Error closing connection:', closeError);
       }
     }
-  } 
+  }
 }
 
 // update user
 const updateUser = async (req, res) => {
-  const { username, role, status, email } = req.body;
+  const { username, role, status, email, personalname } = req.body;
   //console.log(username);
   let conn = null;
   try {
@@ -141,7 +148,7 @@ const updateUser = async (req, res) => {
   }
 
   try {
-    const row = await conn.query("UPDATE users SET role = ?, status = ?, email = ? WHERE Username = ?", [role, status, email, username]);
+    const row = await conn.query("UPDATE users SET role = ?, status = ?, email = ?, personalname = ? WHERE Username = ?", [role, status, email, personalname, username]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update user fail!' });
     }
@@ -160,7 +167,7 @@ const updateUser = async (req, res) => {
         console.error('Error closing connection:', closeError);
       }
     }
-  }  
+  }
 }
 
 // update user status
@@ -195,14 +202,14 @@ const updateUserStatus = async (req, res) => {
 // update password
 const updatePassword = async (req, res) => {
   const { username, password } = req.body;
-  const hashPassword = await bcrypt.hash(password, 256);
+  const hashPassword = await bcrypt.hash(password, 10);
   let conn = null;
   try {
     conn = await db.connection();
     const row = await conn.query("UPDATE users SET password = ? WHERE Username = ?", [hashPassword, username]);
     // console.log(row[0].affectedRows)
     if (row[0].affectedRows > 0) {
-      return res.status(200).send({ message: "Change user password successfully" });
+      return res.status(200).send({ message: "ok" });
     }
     return res.status(404).send({ message: 'ERR: change password fail!' });
   } catch (error) {

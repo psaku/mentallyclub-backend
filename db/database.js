@@ -7,7 +7,7 @@ const options = {
     port: 3306,
     user: "root",
     password: "mysqladmin",
-    database: "mentallityclub_db",
+    database: "mentallyclub_db",
 };
 
 var db = {};

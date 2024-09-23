@@ -112,13 +112,19 @@ const getClubs = async (req, res) => {
 
 // create new club
 const createClub = async (req, res) => {
-  const { clubname, clubfoundingdate, homeno, moo, tambon, district, province, phoneno, zipcode, clubcommitteeid } = req.body;
+  const { clubid, clubname, region, background, foundingdate, homeno, moo, tambon, district, province, 
+          phoneno, zipcode, sponsoredby, clublogo, clubstatus, belongtoassociationname, 
+          clubapproval, lastupdatedby} = req.body;
 
   let conn = null;
+  let now = new Date().toLocaleString();
 
   // Store the user data
   const clubData = {
+    clubid: clubid,
     ClubName: clubname,
+    region: region,
+    background: background,
     HomeNo: homeno,
     Moo: moo,
     Tambon: tambon,
@@ -126,8 +132,14 @@ const createClub = async (req, res) => {
     Province: province,
     PhoneNo: phoneno,
     Zipcode: zipcode,
-    ClubFoundingDate: clubfoundingdate,
-    ClubPresidentID: clubcommitteeid
+    FoundingDate: foundingdate,
+    sponsoredby: sponsoredby,
+    clublogo: clublogo,
+    clubstatus: clubstatus,
+    belongtoassociationname: belongtoassociationname,
+    clubapproval: clubapproval,
+    lastupdatedby: lastupdatedby,
+    lastupdateddate: now
   };
   //console.log(clubData)
   try {
@@ -154,13 +166,16 @@ const createClub = async (req, res) => {
 
 // update club
 const updateClub = async (req, res) => {
-  const { clubid, clubname, clubfoundingdate, homeno, moo, tambon, district, province, phoneno, zipcode, clubcommitteeid } = req.body;
+  const { clubid, clubname, region, background, foundingdate, homeno, moo, tambon, district, province, 
+    phoneno, zipcode, sponsoredby, clublogo, clubstatus, belongtoassociationname, 
+    clubapproval, lastupdatedby} = req.body;
   let conn = null;
+  let now = Date().toLocaleString();
 
   try {
     conn = await db.connection();
-    const row = await conn.query("UPDATE clubs SET ClubName=?, homeno=?, moo=?, tambon=?,district=?,province=?,phoneno=?,zipcode=?, ClubFoundingDate=?, ClubPresidentID=? WHERE ClubID = ?", 
-      [clubname, homeno, moo, tambon, district, province, phoneno,zipcode,clubfoundingdate, clubcommitteeid, clubid]);
+    const row = await conn.query("UPDATE clubs SET ClubName=?, homeno=?, moo=?, tambon=?,district=?,province=?,phoneno=?,zipcode=?, foundingdate=?, region=?, background=?,sponsoredby=?,clublogo=?,clubstatus=?,belongtoassociationname=?,clubapproval=?,lastupdatedby=?,lastupdateddate=? WHERE ClubID = ?", 
+      [clubname, homeno, moo, tambon, district, province, phoneno,zipcode,foundingdate, region,background,sponsoredby,clublogo,clubstatus,belongtoassociationname,clubapproval,lastupdatedby, now, clubid]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update club fail!' });
     }

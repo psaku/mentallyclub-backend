@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require('../db/database');
+
 const secretKey = "noIdea";
 
 const login = async (req, res) => {
@@ -27,11 +28,11 @@ const login = async (req, res) => {
         res.cookie("token", token, {
             maxAge: 1000*60*60*24,   // expired after 24 hours
             secure: false,  // not use with HTTPS only
-            httpOnly: true,
-            sameSite: "none",  // client and server origins are different
+            httpOnly: false,
+            sameSite: "Lax",  // None, (Strict, Lax)
         });
 
-        res.status(200).send({ message: "Login successful", id: user.UserID, email: user.Email, role: user.Role, token: token });
+        res.status(200).send({ message: "Login successful", UserID: user.UserID, PersonalName: user.PersonalName, Email: user.Email, Role: user.Role, Password: user.Password,token: token });
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: 'Internal server error' });
