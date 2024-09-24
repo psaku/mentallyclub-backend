@@ -25,7 +25,7 @@ function generateRandomKey() {
 
 // ฟังก์ชันสำหรับเข้ารหัสไฟล์
 function encryptFile(inputPath, outputPath, key) {
-  const iv = crypto.randomBytes(16);
+  crypto.createCipheriv('aes-256-cbc', key, iv);
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
 
   const input = fs.createReadStream(inputPath);

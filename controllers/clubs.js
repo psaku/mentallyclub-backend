@@ -36,7 +36,7 @@ const getClubByName = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM clubs WHERE ClubName like ?", `%${name}%`);
+    const [rows] = await conn.query("SELECT * FROM clubs WHERE ClubName like ? limit 10", `%${name}%`);
 
     if (rows.length) {
       return res.status(200).send({ message: rows });
@@ -119,7 +119,7 @@ const createClub = async (req, res) => {
   let conn = null;
   let now = new Date().toLocaleString();
 
-  // Store the user data
+  // Store the data
   const clubData = {
     clubid: clubid,
     ClubName: clubname,
@@ -170,7 +170,7 @@ const updateClub = async (req, res) => {
     phoneno, zipcode, sponsoredby, clublogo, clubstatus, belongtoassociationname, 
     clubapproval, lastupdatedby} = req.body;
   let conn = null;
-  let now = Date().toLocaleString();
+  let now = new Date().toLocaleString();
 
   try {
     conn = await db.connection();
