@@ -89,8 +89,11 @@ const getMembers = async (req, res) => {
     const [rows] = await conn.query("SELECT * FROM members");
 
     const members = rows.map((row) => {
-      const personalcardnodecrypted =  crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.recordkey), iv).update(row.personalcardno);  
-      return { ...row, personalcardno: personalcardnodecrypted };
+      decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.RecordKey,'hex'), Buffer.from(row.iv,'hex'));
+      const decrypted =  decipher.update(Buffer.from(row.PersonalCardNo,'hex'));
+      personalcardnodecrypted = Buffer.concat([decrypted, decipher.final()]);  
+      //console.log('CardNo=',personalcardnodecrypted.toString());
+      return { ...row, PersonalCardNo: personalcardnodecrypted.toString() };
     });
     return res.status(200).send({ message: members });
 
@@ -128,7 +131,7 @@ const createMember = async (req, res) => {
   let encrypted = cipher.update(personalcardno);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
 
-  console.log('oldCardNo',personalcardno);
+  //console.log('oldCardNo',personalcardno);
 
   // Store the data
   const memberData = {
@@ -196,13 +199,14 @@ const updateMember = async (req, res) => {
   const { memberid,title,name,surname,applieddate,birthdate,clubid,homeno,moo,tambon,district,province,phoneno,zipcode,personalcardno,personalstatus,ethnicity,nationality,memberstatus,membertype,religion,congenitaldisease,caregivername,caregiverflag,caregiverphoneno,gender,daughter,disabilitycardno,disabilitytype,son,extraabilities,educationinfo,recordkey,iv,lastupdatedby } = req.body;
   let conn = null;
   let now = new Date().toLocaleString();
-  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(recordkey), iv);
+  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(recordkey,'hex'), Buffer.from(iv,'hex'));
   let personalcardnoEncrypted = cipher.update(personalcardno);
+  personalcardnoEncrypted = Buffer.concat([personalcardnoEncrypted, cipher.final()]);
 
   try {
     conn = await db.connection();
     const row = await conn.query("UPDATE members SET title=?,name=?,surname=?,applieddate=?,birthdate=?,religion=?,clubid=?,homeno=?,moo=?,tambon=?,district=?,province=?,phoneno=?,zipcode=?,personalcardno=?,personalstatus=?,ethnicity=?,nationality=?,memberstatus=?,membertype=?,congenitaldisease=?,caregivername=?,caregiverflag=?,caregiverphoneno=?,gender=?,daughter=?,disabilitycardno=?,disabilitytype=?,son=?,extraabilities=?,educationinfo=?,recordkey=?,lastupdatedby=?,lastupdateddate=? WHERE MemberID = ?", 
-      [title,name,surname,applieddate,birthdate,religion,clubid,homeno,moo,tambon,district,province,phoneno,zipcode,personalcardnoEncrypted,personalstatus,ethnicity,nationality,memberstatus,membertype,congenitaldisease,caregivername,caregiverflag,caregiverphoneno,gender,daughter,disabilitycardno,disabilitytype,son,extraabilities,educationinfo,recordkey,lastupdatedby, now, memberid]);
+      [title,name,surname,applieddate,birthdate,religion,clubid,homeno,moo,tambon,district,province,phoneno,zipcode,personalcardnoEncrypted.toString('hex'),personalstatus,ethnicity,nationality,memberstatus,membertype,congenitaldisease,caregivername,caregiverflag,caregiverphoneno,gender,daughter,disabilitycardno,disabilitytype,son,extraabilities,educationinfo,recordkey,lastupdatedby, now, memberid]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update member fail!' });
     }
@@ -210,7 +214,7 @@ const updateMember = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
-      message: "update club data fail!",
+      message: "update member data fail!",
       error,
     });
   } finally {
