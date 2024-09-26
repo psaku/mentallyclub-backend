@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require('../db/database');
 
-const secretKey = "noIdea";
+const secretKey = "8BC9B61C942F9B69C8E438B5F692E";
 
 const login = async (req, res) => {
     const { username, password } = req.body;

@@ -1,9 +1,12 @@
 const express = require('express');
+const dotenv = require('dotenv'); 
 const cors = require('cors');
 const cookieParser = require("cookie-parser");
 const { swaggerSpecs, swaggerUI } = require('./swagger');
 const apiRouter = require('./routes/api');
 
+// Load environment variables from .env file
+dotenv.config();
 process.env.TZ = 'Asia/Bangkok';
 
 const app = express();
@@ -19,7 +22,7 @@ app.use(cors({
 app.use('/api/v1', apiRouter);
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 
-const port = 8888;
+const port = process.env.PORT || 8400;
 app.listen(port, () => {
   console.log("Server listening on port:" + port);
 });

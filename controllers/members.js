@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 
 const db = require('../db/database');
-const iv = crypto.randomBytes(16);
 
 // get member by id
 const getMember = async (req, res) => {
@@ -10,10 +9,14 @@ const getMember = async (req, res) => {
   try {
     conn = await db.connection();
     const [rows] = await conn.query("SELECT * FROM members WHERE MemberID = ?", id);
+    //console.log(rows);
     if (rows.length) {
       const members = rows.map((row) => {
-        const personalcardnodecrypted =  crypto.crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.recordkey), iv).update(row.personalcardno);  
-        return { ...row, personalcardno: personalcardnodecrypted };
+        decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.RecordKey,'hex'), Buffer.from(row.iv,'hex'));
+        const decrypted =  decipher.update(Buffer.from(row.PersonalCardNo,'hex'));
+        personalcardnodecrypted = Buffer.concat([decrypted, decipher.final()]);  
+        //console.log('CardNo=',personalcardnodecrypted.toString());
+        return { ...row, PersonalCardNo: personalcardnodecrypted.toString() };
       });
       return res.status(200).send({ message: members });
       //return res.status(200).send({ message: rows });
@@ -42,14 +45,19 @@ const getMember = async (req, res) => {
 const getMemberByName = async (req, res) => {
   const name = req.params.name;
   let conn = null;
+  const searchValue = `%${name}%`;
+
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM members WHERE (Name like ? or Surname like ?) limit 10", `%${name}%`, `%${name}%`);
+    const [rows] = await conn.query("SELECT * FROM members WHERE Name like ? OR Surname like ? limit 10", [searchValue, searchValue]);
 
     if (rows.length) {
       const members = rows.map((row) => {
-        const personalcardnodecrypted =  crypto.crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.recordkey), iv).update(row.personalcardno);  
-        return { ...row, personalcardno: personalcardnodecrypted };
+        decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.RecordKey,'hex'), Buffer.from(row.iv,'hex'));
+        const decrypted =  decipher.update(Buffer.from(row.PersonalCardNo,'hex'));
+        personalcardnodecrypted = Buffer.concat([decrypted, decipher.final()]);  
+        //console.log('CardNo=',personalcardnodecrypted.toString());
+        return { ...row, PersonalCardNo: personalcardnodecrypted.toString() };
       });
       return res.status(200).send({ message: members });
     }
@@ -81,7 +89,7 @@ const getMembers = async (req, res) => {
     const [rows] = await conn.query("SELECT * FROM members");
 
     const members = rows.map((row) => {
-      const personalcardnodecrypted =  crypto.crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.recordkey), iv).update(row.personalcardno);  
+      const personalcardnodecrypted =  crypto.createDecipheriv('aes-256-cbc', Buffer.from(row.recordkey), iv).update(row.personalcardno);  
       return { ...row, personalcardno: personalcardnodecrypted };
     });
     return res.status(200).send({ message: members });
@@ -113,8 +121,14 @@ const createMember = async (req, res) => {
   let conn = null;
   let now = new Date().toLocaleString();
   const key = crypto.randomBytes(32);
-  const keyBased64 = key.toString('base64');
+  const iv = crypto.randomBytes(16);
+  const keyHex = key.toString('hex');
+  const ivHex = iv.toString('hex');
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+  let encrypted = cipher.update(personalcardno);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  console.log('oldCardNo',personalcardno);
 
   // Store the data
   const memberData = {
@@ -134,7 +148,7 @@ const createMember = async (req, res) => {
     PhoneNo: phoneno,
     Zipcode: zipcode,
     lastupdatedby: lastupdatedby,
-    personalcardno: cipher.update(personalcardno).toString('base64'),
+    personalcardno: encrypted.toString('hex'),
     personalstatus: personalstatus,
     ethnicity: ethnicity,
     nationality: nationality,
@@ -151,10 +165,11 @@ const createMember = async (req, res) => {
     son: son,
     extraabilities: extraabilities,
     educationinfo: educationinfo,
-    recordkey: keyBased64,
+    recordkey: keyHex,
+    iv:ivHex,
     lastupdateddate: now
   };
-  console.log(memberData)
+  //console.log(memberData)
   try {
     conn = await db.connection();
     const result = await conn.query("INSERT INTO members SET ?", memberData);
@@ -178,7 +193,7 @@ const createMember = async (req, res) => {
 
 // update 
 const updateMember = async (req, res) => {
-  const { memberid,title,name,surname,applieddate,birthdate,clubid,homeno,moo,tambon,district,province,phoneno,zipcode,personalcardno,personalstatus,ethnicity,nationality,memberstatus,membertype,religion,congenitaldisease,caregivername,caregiverflag,caregiverphoneno,gender,daughter,disabilitycardno,disabilitytype,son,extraabilities,educationinfo,recordkey,lastupdatedby } = req.body;
+  const { memberid,title,name,surname,applieddate,birthdate,clubid,homeno,moo,tambon,district,province,phoneno,zipcode,personalcardno,personalstatus,ethnicity,nationality,memberstatus,membertype,religion,congenitaldisease,caregivername,caregiverflag,caregiverphoneno,gender,daughter,disabilitycardno,disabilitytype,son,extraabilities,educationinfo,recordkey,iv,lastupdatedby } = req.body;
   let conn = null;
   let now = new Date().toLocaleString();
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(recordkey), iv);
@@ -215,14 +230,18 @@ const deleteMember = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
-    const row = await conn.query("DELETE FROM members WHERE MemberID = ?", id);
-    if (row[0].affectedRows > 0) {
+    conn.beginTransaction();
+    const row1 = await conn.query("DELETE FROM members WHERE MemberID = ?", id);
+    const row2 = await conn.query("DELETE FROM memberdocuments WHERE MemberID = ?", id);
+    if (row1[0].affectedRows > 0) {
+      conn.commit();
       return res.status(200).send({ message: 'ok' });
     }
-
+    conn.rollback();
     return res.status(404).send({ message: 'ERROR: Delete member fail!' });
 
   } catch (error) {
+    conn.rollback();
     console.error(error);
     res.status(500).json({
       message: "Delete member data fail!",
