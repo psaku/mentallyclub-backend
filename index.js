@@ -13,7 +13,7 @@ const app = express();
 
 // express version 4.16.0+ has built-in JSON parsing capabilities
 // using below statement for json body parser
-app.use(express.json());
+app.use(express.json({limit: '30mb'}));
 app.use(cors({
   origin: true,
   credentials: true
