@@ -76,6 +76,8 @@ router.delete('/members/:id', verifyToken, membersController.deleteMember);
 
 // upload api
 router.post('/uploads', verifyToken, uploadController.uploadFiles);
+router.put('/uploads', verifyToken, uploadController.updateFiles);
+router.delete('/unlinks/:id', verifyToken, uploadController.unlinkFiles);
 
 
 // committee api
