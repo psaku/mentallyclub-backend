@@ -28,8 +28,8 @@ const getMember = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "get member data fail!",
+    res.status(400).json({
+      message: "get member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -139,8 +139,8 @@ const getMemberDocuments = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "get member data fail!",
+    res.status(400).json({
+      message: "get member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -179,8 +179,8 @@ const getMemberByName = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "get member data fail!",
+    res.status(400).json({
+      message: "get member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -215,8 +215,8 @@ const getMembers = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "get member data fail!",
+    res.status(400).json({
+      message: "get member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -292,8 +292,8 @@ const createMember = async (req, res) => {
     res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "insert member data fail!",
+    res.status(400).json({
+      message: "insert member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -326,8 +326,8 @@ const updateMember = async (req, res) => {
     return res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      message: "update member data fail!",
+    res.status(400).json({
+      message: "update member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {
@@ -360,8 +360,8 @@ const deleteMember = async (req, res) => {
   } catch (error) {
     conn.rollback();
     console.error(error);
-    res.status(500).json({
-      message: "Delete member data fail!",
+    res.status(400).json({
+      message: "Delete member data fail! (" + error.toString() + ")",
       error,
     });
   } finally {

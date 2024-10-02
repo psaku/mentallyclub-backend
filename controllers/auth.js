@@ -26,13 +26,13 @@ const login = async (req, res) => {
         const token = jwt.sign({ username: user.Username, role: user.Role }, secretKey, { expiresIn: "1h" });
 
         res.cookie("token", token, {
-            maxAge: 1000*60*60*24,   // expired after 24 hours
+            maxAge: 1000 * 60 * 60 * 24,   // expired after 24 hours
             secure: false,  // not use with HTTPS only
             httpOnly: false,
             sameSite: "Lax",  // None, (Strict, Lax)
         });
 
-        res.status(200).send({ message: "Login successful", UserID: user.UserID, PersonalName: user.PersonalName, Email: user.Email, Role: user.Role, Password: user.Password,token: token });
+        res.status(200).send({ message: "Login successful", UserID: user.UserID, PersonalName: user.PersonalName, Email: user.Email, Role: user.Role, Password: user.Password, token: token });
     } catch (error) {
         console.error(error);
         res.status(500).send({ message: 'Internal server error' });
@@ -49,8 +49,13 @@ const login = async (req, res) => {
 
 // user logout
 const logout = async (req, res) => {
-    res.clearCookie('token');
-    res.send({ message: "Logout successful" });
+    try {
+        res.clearCookie('token');
+        res.send({ message: "ok" });
+    } catch (err) {
+        res.send({ message: err });
+        console.log(err);
+    }
 };
 
 module.exports = {
