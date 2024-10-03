@@ -6,7 +6,7 @@ const getClub = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM clubs WHERE ClubID = ?", id);
+    const [rows] = await conn.query("SELECT * FROM clubs WHERE ClubID LIKE ? limit 10", `${id}%`);
     if (rows.length) {
       return res.status(200).send({ message: rows });
     }

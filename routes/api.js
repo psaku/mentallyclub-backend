@@ -79,8 +79,11 @@ router.post('/uploads', verifyToken, uploadController.uploadFiles);
 router.put('/uploads', verifyToken, uploadController.updateFiles);
 router.delete('/unlinks/:id', verifyToken, uploadController.unlinkFiles);
 
-
 // committee api
 router.post('/committees', verifyToken, committeeController.createCommittee);
+router.put('/committees', verifyToken, committeeController.updateCommittee);
+router.delete('/committees', verifyToken, committeeController.deleteCommittee);
+router.get('/committeesbyname/:name', verifyToken, committeeController.getCommitteesByName);
+router.get('/committees/:id', verifyToken, committeeController.getCommittee);
 
 module.exports = router;

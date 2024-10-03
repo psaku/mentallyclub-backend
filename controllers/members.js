@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const fs = require('fs').promises; 
+const fs = require('fs').promises;
 const path = require('path');
 
 const db = require('../db/database');
@@ -10,7 +10,7 @@ const getMember = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM members WHERE MemberID = ?", id);
+    const [rows] = await conn.query("SELECT * FROM members WHERE MemberID LIKE ? limit 10", `${id}%`);
     //console.log(rows);
     if (rows.length) {
       const members = rows.map((row) => {
@@ -73,7 +73,7 @@ const getMember = async (req, res) => {
 //     // Handle the last block manually
 //     const lastBlock = decrypted.slice(-BLOCK_SIZE);
 //     const paddingLength = lastBlock[BLOCK_SIZE - 1];
-    
+
 //     if (paddingLength > 0 && paddingLength <= BLOCK_SIZE) {
 //       // Remove padding only if it's valid
 //       decrypted = decrypted.slice(0, -paddingLength);
@@ -85,10 +85,10 @@ const getMember = async (req, res) => {
 //   }
 // }
 
-async function getImageFile(filePath, key, iv)  {
+async function getImageFile(filePath, key, iv) {
   let ivBuffer = Buffer.from(iv, 'hex');
   try {
-    await fs.access(filePath); 
+    await fs.access(filePath);
     const inputBuffer = await fs.readFile(filePath);
     if (inputBuffer.length <= ivBuffer.length) {
       //throw new Error(`Input buffer too short: ${inputBuffer.length} bytes`);
@@ -104,9 +104,9 @@ async function getImageFile(filePath, key, iv)  {
     }
 
     decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key, 'hex'), Buffer.from(iv, 'hex'));
-    
+
     //Decrypt the data
-    let decrypted = Buffer.concat([ decipher.update(encryptedData), decipher.final() ]); 
+    let decrypted = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
 
     return decrypted.toString('base64');
   } catch (error) {
@@ -124,16 +124,16 @@ const getMemberDocuments = async (req, res) => {
   let houseRegistrationPicture = '';
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM members m INNER JOIN memberdocuments d on m.memberid = d.memberid WHERE m.MemberID = ?", id);
+    const [rows] = await conn.query("SELECT * FROM members m INNER JOIN memberdocuments d on m.memberid = d.memberid WHERE m.MemberID LIKE ?", `${id}%`);
     //console.log(rows);
     if (rows.length) {
       //get file & decrypt
-      memberPhoto = await getImageFile(rows[0].MemberPicture, rows[0].RecordKey, rows[0].iv );
-      personalCardPicture = await getImageFile(rows[0].PersonalCardPicture, rows[0].RecordKey, rows[0].iv );
-      disabilityCardPicture = await getImageFile(rows[0].DisabilityCardPicture, rows[0].RecordKey, rows[0].iv );
-      houseRegistrationPicture = await getImageFile(rows[0].HouseRegistrationPicture, rows[0].RecordKey, rows[0].iv );
+      memberPhoto = await getImageFile(rows[0].MemberPicture, rows[0].RecordKey, rows[0].iv);
+      personalCardPicture = await getImageFile(rows[0].PersonalCardPicture, rows[0].RecordKey, rows[0].iv);
+      disabilityCardPicture = await getImageFile(rows[0].DisabilityCardPicture, rows[0].RecordKey, rows[0].iv);
+      houseRegistrationPicture = await getImageFile(rows[0].HouseRegistrationPicture, rows[0].RecordKey, rows[0].iv);
 
-      return res.status(200).send({message: [{ 'memberID': rows[0].MemberID, 'lastUpdatedBy': rows[0].LastUpdatedBy, 'lastUpdatedDate': rows[0].LastUpdatedDate, 'memberPhoto': memberPhoto, 'personalCardPicture': personalCardPicture, 'disabilityCardPicture': disabilityCardPicture, 'houseRegistrationPicture': houseRegistrationPicture }]});
+      return res.status(200).send({ message: [{ 'memberID': rows[0].MemberID, 'lastUpdatedBy': rows[0].LastUpdatedBy, 'lastUpdatedDate': rows[0].LastUpdatedDate, 'memberPhoto': memberPhoto, 'personalCardPicture': personalCardPicture, 'disabilityCardPicture': disabilityCardPicture, 'houseRegistrationPicture': houseRegistrationPicture }] });
     } else {
       return res.status(404).send({ message: 'Member documents not found!' });
     }
@@ -232,7 +232,7 @@ const getMembers = async (req, res) => {
 
 // create new club
 const createMember = async (req, res) => {
-  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, lastupdatedby } = req.body;
+  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, lastupdatedby, cardNoHashing } = req.body;
 
   let conn = null;
   let now = new Date().toLocaleString();
@@ -283,11 +283,16 @@ const createMember = async (req, res) => {
     educationinfo: educationinfo,
     recordkey: keyHex,
     iv: ivHex,
-    lastupdateddate: now
+    lastupdateddate: now,
+    cardNoHashing: cardNoHashing,
   };
   //console.log(memberData)
   try {
     conn = await db.connection();
+    const [checkcardno] = await conn.query("SELECT name,cardNoHashing FROM members WHERE cardNoHashing = ?", [cardNoHashing]);
+    if (checkcardno.length) {
+      return res.status(400).send({ message: "The personal card no is inused! (Duplicated!)" });
+    }
     const result = await conn.query("INSERT INTO members SET ?", memberData);
     res.status(200).send({ message: "ok" });
   } catch (error) {
@@ -309,7 +314,7 @@ const createMember = async (req, res) => {
 
 // update 
 const updateMember = async (req, res) => {
-  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, iv, lastupdatedby } = req.body;
+  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, iv, lastupdatedby,cardNoHashing } = req.body;
   let conn = null;
   let now = new Date().toLocaleString();
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(recordkey, 'hex'), Buffer.from(iv, 'hex'));
@@ -318,8 +323,12 @@ const updateMember = async (req, res) => {
 
   try {
     conn = await db.connection();
-    const row = await conn.query("UPDATE members SET title=?,name=?,surname=?,applieddate=?,birthdate=?,religion=?,clubid=?,homeno=?,moo=?,tambon=?,district=?,province=?,phoneno=?,zipcode=?,personalcardno=?,personalstatus=?,ethnicity=?,nationality=?,memberstatus=?,membertype=?,congenitaldisease=?,caregivername=?,caregiverflag=?,caregiverphoneno=?,gender=?,daughter=?,disabilitycardno=?,disabilitytype=?,son=?,extraabilities=?,educationinfo=?,recordkey=?,lastupdatedby=?,lastupdateddate=? WHERE MemberID = ?",
-      [title, name, surname, applieddate, birthdate, religion, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardnoEncrypted.toString('hex'), personalstatus, ethnicity, nationality, memberstatus, membertype, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, lastupdatedby, now, memberid]);
+    const [checkcardno] = await conn.query("SELECT cardNoHashing FROM members WHERE cardNoHashing = ? AND name <> ? AND surname <> ?", [cardNoHashing, name, surname]);
+    if (checkcardno.length) {
+      return res.status(400).send({ message: "The personal card no is inused! (Duplicated!)" });
+    }
+    const row = await conn.query("UPDATE members SET title=?,name=?,surname=?,applieddate=?,birthdate=?,religion=?,clubid=?,homeno=?,moo=?,tambon=?,district=?,province=?,phoneno=?,zipcode=?,personalcardno=?,personalstatus=?,ethnicity=?,nationality=?,memberstatus=?,membertype=?,congenitaldisease=?,caregivername=?,caregiverflag=?,caregiverphoneno=?,gender=?,daughter=?,disabilitycardno=?,disabilitytype=?,son=?,extraabilities=?,educationinfo=?,recordkey=?,lastupdatedby=?,lastupdateddate=?, cardNoHashing=? WHERE MemberID = ?",
+      [title, name, surname, applieddate, birthdate, religion, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardnoEncrypted.toString('hex'), personalstatus, ethnicity, nationality, memberstatus, membertype, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, lastupdatedby, now, cardNoHashing, memberid]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update member fail!' });
     }
@@ -355,7 +364,7 @@ const deleteMember = async (req, res) => {
       return res.status(200).send({ message: 'ok' });
     }
     conn.rollback();
-    return res.status(404).send({ message: 'ERROR: Delete member fail!' });
+    return res.status(400).send({ message: 'ERROR: Delete member data fail!' });
 
   } catch (error) {
     conn.rollback();
