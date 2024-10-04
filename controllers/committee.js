@@ -7,7 +7,7 @@ const getCommittee = async (req, res) => {
     let conn = null;
     try {
         conn = await db.connection();
-        const [rows] = await conn.query("SELECT * FROM committees WHERE committeeID LIKE ? limit 10", `${id}%`);
+        const [rows] = await conn.query("SELECT cm.*, c.clubname FROM committees cm inner join clubs c on cm.clubID = c.clubid  WHERE committeeID LIKE ? limit 10", `${id}%`);
         //console.log(rows);
         if (rows.length) {
             const committees = rows.map((row) => {
@@ -48,7 +48,7 @@ const getCommitteesByName = async (req, res) => {
 
     try {
         conn = await db.connection();
-        const [rows] = await conn.query("SELECT * FROM committees WHERE name like ? OR surname like ? limit 10", [searchValue, searchValue]);
+        const [rows] = await conn.query("SELECT cm.*, c.clubname FROM committees cm inner join clubs c on cm.clubID = c.clubid WHERE name like ? OR surname like ? limit 10", [searchValue, searchValue]);
 
         if (rows.length) {
             const committees = rows.map((row) => {
