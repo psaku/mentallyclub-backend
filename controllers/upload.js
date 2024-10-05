@@ -7,7 +7,7 @@ const db = require('../db/database');
 
 dotenv.config();
 
-const UPLOAD_PATH = process.env.UPLOAD_STORAGE_FOLDER;
+const UPLOAD_PATH = process.env.UPLOAD_MEMBER_STORAGE_FOLDER;
 
 async function getRecordKey(id) {
   let conn = null;

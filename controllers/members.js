@@ -323,7 +323,7 @@ const updateMember = async (req, res) => {
 
   try {
     conn = await db.connection();
-    const [checkcardno] = await conn.query("SELECT cardNoHashing FROM members WHERE cardNoHashing = ? AND name <> ? AND surname <> ?", [cardNoHashing, name, surname]);
+    const [checkcardno] = await conn.query("SELECT cardNoHashing FROM members WHERE cardNoHashing = ? AND memberid <> ?", [cardNoHashing, memberid]);
     if (checkcardno.length) {
       return res.status(400).send({ message: "The personal card no is inused! (Duplicated!)" });
     }

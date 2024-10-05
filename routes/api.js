@@ -85,5 +85,8 @@ router.put('/committees', verifyToken, committeeController.updateCommittee);
 router.delete('/committees', verifyToken, committeeController.deleteCommittee);
 router.get('/committeesbyname/:name', verifyToken, committeeController.getCommitteesByName);
 router.get('/committees/:id', verifyToken, committeeController.getCommittee);
+router.get('/committeeedu/:id', verifyToken, committeeController.getCommitteeEducations);
+router.get('/committeeexp/:id', verifyToken, committeeController.getCommitteeExperiences);
+router.get('/committeetln/:id', verifyToken, committeeController.getCommitteeTalents);
 
 module.exports = router;

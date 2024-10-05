@@ -162,8 +162,8 @@ const createCommittee = async (req, res) => {
         const result = await conn.query("INSERT INTO Committees SET ?", committeeData);
         // insert educational data     
         if (educations.length > 0) {
-            const insertEduQuery = 'INSERT INTO CommitteeEducations (educationLevel, major, committeeID, institute, graduatedYear, lastUpdatedBy, lastUpdatedDate) VALUES ?';
-            const eduValues = educations.map(education => [education.educationLevel, education.major, result[0].insertId, education.institute, education.graduatedYear, committeeData.lastUpdatedBy, now]);
+            const insertEduQuery = 'INSERT INTO CommitteeEducations (educationLevel, field, committeeID, institute, graduatedYear, lastUpdatedBy, lastUpdatedDate) VALUES ?';
+            const eduValues = educations.map(education => [education.educationLevel, education.field, result[0].insertId, education.institute, education.graduatedYear, committeeData.lastUpdatedBy, now]);
             const eduResult = await conn.query(insertEduQuery, [eduValues]);
         }
         // insert experiences data
@@ -216,14 +216,14 @@ const updateCommittee = async (req, res) => {
 
     try {
         conn = await db.connection();
-        const [checkcardno] = await conn.query("SELECT cardNoHashing FROM committees WHERE cardNoHashing = ? AND name <> ? AND surname <> ?", [inbody.cardNoHashing, inbody.name, inbody.surname]);
+        const [checkcardno] = await conn.query("SELECT cardNoHashing FROM committees WHERE cardNoHashing = ? AND committeeID <> ?", [inbody.cardNoHashing, inbody.committeeID]);
         if (checkcardno.length) {
             return res.status(400).send({ message: "The personal card no is inused! (Duplicated!)" });
         }
         await conn.beginTransaction();
         // update committee data
         const updateQuery = `
-            UPDATE committee
+            UPDATE committees
             SET clubID = ?, name = ?, surname = ?, nationality = ?, ethnicity = ?, personalStatus = ?, personalCardNo = ?, personalCardIssuedDate = ?, personalCardExpiredDate = ?, phoneNo = ?, faxNo = ?, fatherName = ?, motherName = ?, disabilityCardNo = ?, fatherOccupation = ?, motherOccupation = ?, clubResponsibility = ?,jobResponsibility=?, religion = ?, fatherAge = ?, motherAge = ?, homeNo = ?, moo = ?, tambon = ?, district = ?, province = ?, zipcode = ?, alternativeHomeno = ?, alternativeMoo = ?, alternativeTambon = ?, alternativeDistrict = ?, alternativeProvince = ?, alternativeZipcode = ?, birthdate = ?, personalCardIssuedPlace = ?, disabilityNameInCare = ?, occupation = ?, email=?,latestEducation=?,lastUpdatedBy=?,lastUpdatedDate=?,cardNoHashing=?
             WHERE committeeID = ?
         `;
@@ -275,29 +275,36 @@ const updateCommittee = async (req, res) => {
 
         const result = await conn.query(updateQuery, cmValues);
         // --------- educations --------
+
         // update or insert educations of committee
         // 1) remove old records
-        const rows1 = await conn.query('DELETE FROM CommitteeEducations WHERE committeeID = ?', [educations.committeeID]);
-        // 2) insert new educational data        
-        const insertEduQuery = 'INSERT INTO CommitteeEducations (educationLevel, major, committeeID, institute, graduatedYear, lastUpdatedBy, lastUpdatedDate) VALUES ?';
-        const eduValues = educations.map(education => [education.educationLevel, education.major, educations.committeeID, education.institute, education.graduatedYear, committeeData.lastUpdatedBy, now]);
-        const eduResult = await conn.query(insertEduQuery, [eduValues]);
+        const rows1 = await conn.query('DELETE FROM CommitteeEducations WHERE committeeID = ?', [inbody.committeeID]);
+        // 2) insert new educational data       
+        if (educations.length > 0) {
+            const insertEduQuery = 'INSERT INTO CommitteeEducations (educationLevel, field, committeeID, institute, graduatedYear, lastUpdatedBy, lastUpdatedDate) VALUES ?';
+            const eduValues = educations.map(education => [education.educationLevel, education.field, inbody.committeeID, education.institute, education.graduatedYear, inbody.lastUpdatedBy, now]);
+            const eduResult = await conn.query(insertEduQuery, [eduValues]);
+        }
         // -------- experiences -------
         // 1) remove old records
-        const rows2 = await conn.query('DELETE FROM CommitteeExperiences WHERE committeeID = ?', [experiences.committeeID]);
+        const rows2 = await conn.query('DELETE FROM CommitteeExperiences WHERE committeeID = ?', [inbody.committeeID]);
         // 2) insert new data 
         // insert experiences data
-        const insertExpQuery = 'INSERT INTO CommitteeExperiences (responsibility, description, committeeID, organization, duration, lastUpdatedBy, lastUpdatedDate) VALUES ?';
-        const expValues = experiences.map(exp => [exp.responsibility, exp.description, experiences.committeeID, exp.organization, exp.duration, committeeData.lastUpdatedBy, now]);
-        const expResult = await conn.query(insertExpQuery, [expValues]);
+        if (experiences.length > 0) {
+            const insertExpQuery = 'INSERT INTO CommitteeExperiences (responsibility, description, committeeID, organization, duration, lastUpdatedBy, lastUpdatedDate) VALUES ?';
+            const expValues = experiences.map(exp => [exp.responsibility, exp.description, inbody.committeeID, exp.organization, exp.duration, inbody.lastUpdatedBy, now]);
+            const expResult = await conn.query(insertExpQuery, [expValues]);
+        }
         // -------- talents -------
         // 1) remove old records
-        const rows3 = await conn.query('DELETE FROM CommitteeTalents WHERE committeeID = ?', [talents.committeeID]);
+        const rows3 = await conn.query('DELETE FROM CommitteeTalents WHERE committeeID = ?', [inbody.committeeID]);
         // 2) insert new data 
         // insert talentd data
-        const insertTalentQuery = 'INSERT INTO CommitteeTalents (talentLevel, description, committeeID, lastUpdatedBy, lastUpdatedDate) VALUES ?';
-        const talentValues = talents.map(tal => [tal.talentLevel, tal.description, talents.committeeID, committeeData.lastUpdatedBy, now]);
-        const talentResult = await conn.query(insertTalentQuery, [talentValues]);
+        if (talents.length > 0) {
+            const insertTalentQuery = 'INSERT INTO CommitteeTalents (talentLevel, description, committeeID, lastUpdatedBy, lastUpdatedDate) VALUES ?';
+            const talentValues = talents.map(tal => [tal.talentLevel, tal.description, inbody.committeeID, inbody.lastUpdatedBy, now]);
+            const talentResult = await conn.query(insertTalentQuery, [talentValues]);
+        }
         // ----- end ----
         await conn.commit();
         res.status(200).send({ message: "ok" });
@@ -355,6 +362,89 @@ const deleteCommittee = async (req, res) => {
     }
 }
 
+const getCommitteeEducations = async (req, res) => {
+    const id = req.params.id;
+    let conn = null;
+    try {
+        conn = await db.connection();
+        const [rows] = await conn.query("SELECT * FROM CommitteeEducations WHERE committeeID = ?", id);
+        //console.log(rows);
+
+        return res.status(200).send({ message: rows });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            message: "get educational info of committee fail! (" + error.toString() + ")",
+            error,
+        });
+    } finally {
+        if (conn) {
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
+        }
+    }
+}
+
+const getCommitteeExperiences = async (req, res) => {
+    const id = req.params.id;
+    let conn = null;
+    try {
+        conn = await db.connection();
+        const [rows] = await conn.query("SELECT * FROM CommitteeExperiences WHERE committeeID = ?", id);
+        //console.log(rows);
+
+        return res.status(200).send({ message: rows });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            message: "get experiences of committee fail! (" + error.toString() + ")",
+            error,
+        });
+    } finally {
+        if (conn) {
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
+        }
+    }
+}
+
+const getCommitteeTalents = async (req, res) => {
+    const id = req.params.id;
+    let conn = null;
+    try {
+        conn = await db.connection();
+        const [rows] = await conn.query("SELECT * FROM CommitteeTalents WHERE committeeID = ?", id);
+        //console.log(rows);
+
+        return res.status(200).send({ message: rows });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            message: "get talents info of committee fail! (" + error.toString() + ")",
+            error,
+        });
+    } finally {
+        if (conn) {
+            try {
+                await conn.close(); // Close the connection in the finally block
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
+        }
+    }
+
+}
+
+
 module.exports = {
-    createCommittee, updateCommittee, deleteCommittee, getCommittee, getCommitteesByName
+    createCommittee, updateCommittee, deleteCommittee, getCommittee, getCommitteesByName, getCommitteeTalents, getCommitteeExperiences, getCommitteeEducations
 };
