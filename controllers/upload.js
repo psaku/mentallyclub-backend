@@ -1,4 +1,3 @@
-//const multer = require('multer');
 const path = require('path');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
@@ -31,23 +30,6 @@ async function getRecordKey(id) {
   }
   return null;
 }
-// กำหนดที่เก็บไฟล์และชื่อไฟล์
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const dir = './uploads';
-//     if (!fs.existsSync(dir)) {
-//       fs.mkdirSync(dir);
-//     }
-//     cb(null, dir);
-//   },
-//   filename: (req, file, cb) => {
-//     // Encrypt the filename to ensure security
-//     const encryptedName = crypto.createHash('sha256').update(file.originalname + Date.now()).digest('hex');
-//     cb(null, `${encryptedName}${path.extname(file.originalname)}`);
-//   }
-// });
-
-// const upload = multer({ storage: storage });
 
 // ฟังก์ชันสำหรับเข้ารหัสไฟล์
 async function encryptFile(inputBuffer, outputPath, keyrec) {
@@ -90,9 +72,7 @@ const uploadFiles = async (req, res) => {
     if (!fs.existsSync(UPLOAD_PATH)) {
       fs.mkdirSync(UPLOAD_PATH, { recursive: true }); // Use recursive to create nested directories
     }
-    // if (fs.existsSync(memberPhotoFilePath) || fs.existsSync(personalCardPictureFilePath) || fs.existsSync(disabilityCardPictureFilePath) || fs.existsSync(houseRegistrationPictureFilePath)) {
-    //   res.status(200).send({ message: "Duplicated file, please remove old file or choose update process" });
-    // } else {
+   
     await encryptFile(memberPhoto, memberPhotoFilePath, resultKey);
 
     // process personalCardPicture 
@@ -114,10 +94,9 @@ const uploadFiles = async (req, res) => {
     if (result == true) {
       res.status(200).send({ message: "ok" });
     } else {
-
-      res.status(500).send({ message: result });
+      res.status(400).send({ message: result });
     }
-    //}  // if check dup
+    
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการเข้ารหัสไฟล์:', error);
     res.status(500).send({ message: 'เกิดข้อผิดพลาดในการประมวลผลไฟล์' });
@@ -143,9 +122,7 @@ const updateFiles = async (req, res) => {
     if (!fs.existsSync(UPLOAD_PATH)) {
       fs.mkdirSync(UPLOAD_PATH, { recursive: true }); // Use recursive to create nested directories
     }
-    // if (fs.existsSync(memberPhotoFilePath) || fs.existsSync(personalCardPictureFilePath) || fs.existsSync(disabilityCardPictureFilePath) || fs.existsSync(houseRegistrationPictureFilePath)) {
-    //   res.status(200).send({ message: "Duplicated file, please remove old file or choose update process" });
-    // } else {
+    
     await encryptFile(memberPhoto, memberPhotoFilePath, resultKey);
 
     // process personalCardPicture 
@@ -170,7 +147,7 @@ const updateFiles = async (req, res) => {
 
       res.status(500).send({ message: result });
     }
-    //}  // if check dup
+    
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการเข้ารหัสไฟล์:', error);
     res.status(500).send({ message: 'เกิดข้อผิดพลาดในการประมวลผลไฟล์' });
@@ -200,6 +177,7 @@ async function saveDocument(memberID, memberPhotoFilePath, personalCardPictureFi
         return true;
       } catch (closeError) {
         console.error('Error closing connection:', closeError);
+        return false;
       }
     }
   } catch (error) {
@@ -221,6 +199,7 @@ async function updateDocument(memberID, memberPhotoFilePath, personalCardPicture
         return true;
       } catch (closeError) {
         console.error('Error closing connection:', closeError);
+        return false;
       }
     }
   } catch (error) {

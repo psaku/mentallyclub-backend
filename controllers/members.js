@@ -124,7 +124,7 @@ const getMemberDocuments = async (req, res) => {
   let houseRegistrationPicture = '';
   try {
     conn = await db.connection();
-    const [rows] = await conn.query("SELECT * FROM members m INNER JOIN memberdocuments d on m.memberid = d.memberid WHERE m.MemberID LIKE ?", `${id}%`);
+    const [rows] = await conn.query("SELECT * FROM members m INNER JOIN memberdocuments d on m.memberid = d.memberid WHERE m.MemberID = ?", `${id}`);
     //console.log(rows);
     if (rows.length) {
       //get file & decrypt

@@ -35,7 +35,7 @@ const login = async (req, res) => {
         res.status(200).send({ message: "Login successful", UserID: user.UserID, PersonalName: user.PersonalName, Email: user.Email, Role: user.Role, Password: user.Password, token: token });
     } catch (error) {
         console.error(error);
-        res.status(500).send({ message: 'Internal server error' });
+        res.status(400).send({ message: 'Internal server error' });
     } finally {
         if (conn) {
             try {

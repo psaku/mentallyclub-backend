@@ -7,6 +7,7 @@ const clubsController = require('../controllers/clubs');
 const committeeController = require('../controllers/committee');
 const membersController = require('../controllers/members');
 const uploadController = require('../controllers/upload');
+const regulationController = require('../controllers/regulation');
 
 // const verifyToken = (req, res, next) => {
 //   const token = req.cookies.token; // เปลี่ยนมาเช็คผ่าน cookie ที่ใส่ไปแทน
@@ -78,6 +79,13 @@ router.delete('/members/:id', verifyToken, membersController.deleteMember);
 router.post('/uploads', verifyToken, uploadController.uploadFiles);
 router.put('/uploads', verifyToken, uploadController.updateFiles);
 router.delete('/unlinks/:id', verifyToken, uploadController.unlinkFiles);
+// regulation upload api
+router.post('/reguploads', verifyToken, regulationController.uploadFile);
+router.put('/reguploads', verifyToken, regulationController.updateFile);
+router.delete('/regunlinks/:id', verifyToken, regulationController.unlinkFile);
+router.get('/clubregs/:id', verifyToken, regulationController.getClubRegulationByID);
+router.get('/clubregsbyname/:name', verifyToken, regulationController.getClubRegulationByName);
+router.get('/regdocs/:id', regulationController.getRegulationDocument);
 
 // committee api
 router.post('/committees', verifyToken, committeeController.createCommittee);
