@@ -232,7 +232,7 @@ const getMembers = async (req, res) => {
 
 // create new club
 const createMember = async (req, res) => {
-  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, lastupdatedby, cardNoHashing } = req.body;
+  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, street, soi, village, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, lastupdatedby, cardNoHashing } = req.body;
 
   let conn = null;
   let now = new Date().toLocaleString();
@@ -258,6 +258,9 @@ const createMember = async (req, res) => {
     religion: religion,
     HomeNo: homeno,
     Moo: moo,
+    Street: street,
+    Soi: soi,
+    Village: village,
     Tambon: tambon,
     District: district,
     Province: province,
@@ -314,7 +317,7 @@ const createMember = async (req, res) => {
 
 // update 
 const updateMember = async (req, res) => {
-  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, iv, lastupdatedby,cardNoHashing } = req.body;
+  const { memberid, title, name, surname, applieddate, birthdate, clubid, homeno, moo, street, soi, village, tambon, district, province, phoneno, zipcode, personalcardno, personalstatus, ethnicity, nationality, memberstatus, membertype, religion, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, iv, lastupdatedby,cardNoHashing } = req.body;
   let conn = null;
   let now = new Date().toLocaleString();
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(recordkey, 'hex'), Buffer.from(iv, 'hex'));
@@ -327,8 +330,8 @@ const updateMember = async (req, res) => {
     if (checkcardno.length) {
       return res.status(400).send({ message: "The personal card no is inused! (Duplicated!)" });
     }
-    const row = await conn.query("UPDATE members SET title=?,name=?,surname=?,applieddate=?,birthdate=?,religion=?,clubid=?,homeno=?,moo=?,tambon=?,district=?,province=?,phoneno=?,zipcode=?,personalcardno=?,personalstatus=?,ethnicity=?,nationality=?,memberstatus=?,membertype=?,congenitaldisease=?,caregivername=?,caregiverflag=?,caregiverphoneno=?,gender=?,daughter=?,disabilitycardno=?,disabilitytype=?,son=?,extraabilities=?,educationinfo=?,recordkey=?,lastupdatedby=?,lastupdateddate=?, cardNoHashing=? WHERE MemberID = ?",
-      [title, name, surname, applieddate, birthdate, religion, clubid, homeno, moo, tambon, district, province, phoneno, zipcode, personalcardnoEncrypted.toString('hex'), personalstatus, ethnicity, nationality, memberstatus, membertype, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, lastupdatedby, now, cardNoHashing, memberid]);
+    const row = await conn.query("UPDATE members SET title=?,name=?,surname=?,applieddate=?,birthdate=?,religion=?,clubid=?,homeno=?,moo=?,street=?,soi=?,village=?,tambon=?,district=?,province=?,phoneno=?,zipcode=?,personalcardno=?,personalstatus=?,ethnicity=?,nationality=?,memberstatus=?,membertype=?,congenitaldisease=?,caregivername=?,caregiverflag=?,caregiverphoneno=?,gender=?,daughter=?,disabilitycardno=?,disabilitytype=?,son=?,extraabilities=?,educationinfo=?,recordkey=?,lastupdatedby=?,lastupdateddate=?, cardNoHashing=? WHERE MemberID = ?",
+      [title, name, surname, applieddate, birthdate, religion, clubid, homeno, moo, street, soi, village, tambon, district, province, phoneno, zipcode, personalcardnoEncrypted.toString('hex'), personalstatus, ethnicity, nationality, memberstatus, membertype, congenitaldisease, caregivername, caregiverflag, caregiverphoneno, gender, daughter, disabilitycardno, disabilitytype, son, extraabilities, educationinfo, recordkey, lastupdatedby, now, cardNoHashing, memberid]);
     if (!(row[0].affectedRows > 0)) {
       return res.status(404).send({ message: 'ERR: update member fail!' });
     }

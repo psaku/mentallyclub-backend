@@ -11,11 +11,11 @@ const getClub = async (req, res) => {
       return res.status(200).send({ message: rows });
     }
 
-    return res.status(404).send({ message: 'Club not found!' });
+    return res.status(400).send({ message: 'Club not found!' });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(400).json({
       message: "get club data fail!",
       error,
     });
@@ -42,7 +42,7 @@ const getClubByName = async (req, res) => {
       return res.status(200).send({ message: rows });
     }
 
-    return res.status(404).send({ message: 'Club not found!' });
+    return res.status(400).send({ message: 'Club not found!' });
 
   } catch (error) {
     console.error(error);
@@ -148,7 +148,7 @@ const createClub = async (req, res) => {
     res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(400).json({
       message: "insert club data fail!",
       error,
     });
@@ -177,12 +177,12 @@ const updateClub = async (req, res) => {
     const row = await conn.query("UPDATE clubs SET ClubName=?, homeno=?, moo=?, tambon=?,district=?,province=?,phoneno=?,zipcode=?, foundingdate=?, region=?, background=?,sponsoredby=?,clublogo=?,clubstatus=?,belongtoassociationname=?,clubapproval=?,lastupdatedby=?,lastupdateddate=? WHERE ClubID = ?", 
       [clubname, homeno, moo, tambon, district, province, phoneno,zipcode,foundingdate, region,background,sponsoredby,clublogo,clubstatus,belongtoassociationname,clubapproval,lastupdatedby, now, clubid]);
     if (!(row[0].affectedRows > 0)) {
-      return res.status(404).send({ message: 'ERR: update club fail!' });
+      return res.status(400).send({ message: 'ERR: update club fail!' });
     }
     return res.status(200).send({ message: "ok" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    res.status(400).json({
       message: "update club data fail!",
       error,
     });
@@ -203,16 +203,20 @@ const deleteClub = async (req, res) => {
   let conn = null;
   try {
     conn = await db.connection();
+    conn.beginTransaction();
     const row = await conn.query("DELETE FROM clubs WHERE ClubID = ?", id);
+    const row2 = await conn.query("DELETE FROM clubregulation WHERE clubID = ?", id);
     if (row[0].affectedRows > 0) {
+      conn.commit();
       return res.status(200).send({ message: 'ok' });
     }
-
+    conn.rollback();
     return res.status(404).send({ message: 'ERROR: Delete club fail!' });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    conn.rollback();
+    res.status(400).json({
       message: "Delete club data fail!",
       error,
     });
